@@ -4,28 +4,7 @@ import NavLink from "./NavLink";
 import { useQuery } from "react-query";
 import { request, gql } from "graphql-request";
 
-const Header = ({ headerMenu: menu }) => {
-  const endpoint = process.env.ENDPOINT;
-
-  const getD = (endpoint) => {
-    const { data } = useQuery("generalSettings", async () => {
-      const { generalSettings } = await request(
-        endpoint,
-        gql`
-          query {
-            generalSettings {
-              description
-              title
-              url
-            }
-          }
-        `
-      );
-      return generalSettings;
-    });
-    return data || {};
-  };
-  const site = getD(endpoint);
+const Header = ({ headerMenu: menu, siteInfo: site }) => {
   return (
     <div className="header_section bg-gray-200 px-3 py-2 flex justify-between items-center">
       <div className="header_section__left">

@@ -1,8 +1,7 @@
-import Layout from "../components/layout";
 import "../styles/globals.css";
 import "../styles/tailwind.css";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 function MyApp({ Component, pageProps }) {
@@ -10,10 +9,10 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Layout>
+      <Hydrate state={pageProps.dehydratedState}>
         <Component {...pageProps} />
-      </Layout>
-      <ReactQueryDevtools initialIsOpen={false} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </Hydrate>
     </QueryClientProvider>
   );
 }

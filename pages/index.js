@@ -1,20 +1,31 @@
-import { useQuery, QueryClient, dehydrate } from "react-query";
+import { useQuery, QueryClient } from "react-query";
 import { request, gql } from "graphql-request";
+import { dehydrate } from "react-query/hydration";
+import {
+  getLayoutInfo,
+  getSiteInfo,
+  layoutInfo,
+  siteInfo,
+} from "../components/lib/layoutInfo";
+import Layout from "../components/layout";
+import Link from "next/link";
 
-export default function Home({ dehydratedState }) {
-  const initData = dehydratedState?.queries[0]?.state?.data?.nodes;
-  const {
-    data: { nodes: posts },
-    status,
-  } = getAllPosts(initData);
+export default function Home() {
+  const { data: posts, status, isLoading } = getAllPosts();
+  const info = layoutInfo();
+  const site = siteInfo();
   // return <h1>Fetching</h1>;
-  return (
-    <div>
+  return isLoading ? (
+    <Layout layoutInfo={info} siteInfo={site}>
+      <h1 className="text-2xl">Loading</h1>
+    </Layout>
+  ) : (
+    <Layout layoutInfo={info} siteInfo={site}>
       <h1 className="text-5xl m-3">Recent Posts</h1>
       <div className="flex flex-wrap">
         {status === "success" &&
-          posts &&
-          posts.map((post) => (
+          posts.nodes &&
+          posts.nodes.map((post) => (
             <div key={post.id} className="w-1/4">
               <div key={post.id} className="shadow m-2 rounded">
                 {post.featuredImage?.node.sourceUrl ? (
@@ -28,7 +39,9 @@ export default function Home({ dehydratedState }) {
                 )}
                 <div className="p-2">
                   <a href={`posts/${post.slug}`} className="hover:underline">
-                    <h2 className="text-xl font-semibold">{post.title}</h2>
+                    <Link href={`posts/${post.slug}`}>
+                      <h2 className="text-xl font-semibold">{post.title}</h2>
+                    </Link>
                   </a>
                   <div
                     className="post_content w-full"
@@ -36,18 +49,17 @@ export default function Home({ dehydratedState }) {
                       __html: post.excerpt.slice(0, 100),
                     }}
                   />
-                  <a
-                    href={`posts/${post.slug}`}
-                    className="text-blue-500 hover:underline inline-block"
-                  >
-                    read more...
-                  </a>
+                  <Link href={`posts/${post.slug}`}>
+                    <a className="text-blue-500 hover:underline inline-block">
+                      read more...
+                    </a>
+                  </Link>
                 </div>
               </div>
             </div>
           ))}
       </div>
-    </div>
+    </Layout>
   );
 }
 
@@ -80,15 +92,16 @@ const getPost = async () => {
   return posts;
 };
 
-const getAllPosts = (posts) => {
-  const data = useQuery("posts", getPost, { initialData: posts });
+const getAllPosts = () => {
+  const data = useQuery("posts", getPost);
   return data;
 };
 
 export async function getStaticProps() {
   const queryClient = new QueryClient();
-
   await queryClient.prefetchQuery("posts", getPost);
+  await queryClient.prefetchQuery("menuItems", getLayoutInfo);
+  await queryClient.prefetchQuery("generalSettings", getSiteInfo);
 
   return {
     props: {
